@@ -8,7 +8,7 @@ from flask_cors import CORS
 load_dotenv()
 app = Flask(__name__)
 CORS(app)
-app.config['MONGO_URI'] ='mongodb+srv://vivek:tomar@cluster0.aylkeza.mongodb.net/movieverse?retryWrites=true&w=majority'
+app.config['MONGO_URI'] =os.getenv('MONGO_URI')
 mongo = PyMongo(app)
 
 @app.route('/users', methods=['GET'])
