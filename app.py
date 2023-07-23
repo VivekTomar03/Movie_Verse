@@ -5,6 +5,7 @@ import os
 from pymongo import MongoClient
 from bson import ObjectId
 from flask_cors import CORS
+import openai
 load_dotenv()
 app = Flask(__name__)
 CORS(app)
@@ -437,6 +438,46 @@ def remove_event_participant(event_id):
     else:
         return jsonify({'message': 'Event not found'}), 404
 
+
+
+# Set up the OpenAI API
+
+openai.api_key = os.getenv("openai.api_key")
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.json
+    user_input = data['message']
+    response = generate_chat_response(user_input)
+    return jsonify({'response': response})
+
+# Predefined questions and default answers
+default_responses = {
+    "What is the status of my ticket?": "Hello sir/madam your ticket booking in progress ",
+    "Best movie of the day": "The best moviethe day is PK",
+    "What can you do?": "I can answer questions and have a conversation with you.",
+     "what is your name":"my name is movie verse  chatbot"
+    # Add more predefined questions and default answers as needed
+}
+
+# Function to generate chat responses
+def generate_chat_response(user_input):
+
+    # Check if the user's input matches a predefined question
+    if user_input in default_responses:
+        return default_responses[user_input]
+    
+    # Generate a response using OpenAI GPT-3.5 model
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt="you have to act like chat bot similary like bookmyshow app chat bot who give only answer to user who ask movie booking and movies show, event, webseries related question if they ask other question bot reply i dont have idea about it"+"this user input"+user_input+"please make sure it ask releavent question only , also if user ask any question related to movie ticket event ticket  please answer it in random manner with random data",
+        max_tokens=50,
+        temperature=0.8,
+        n=1,
+        stop=None,
+        timeout=15
+    )
+    
+    return response.choices[0].text.strip()
 
 
 if __name__ == '__main__':
