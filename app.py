@@ -317,7 +317,17 @@ class Event:
 
 @app.route('/events', methods=['GET'])
 def get_events():
-    events = db.events.find()
+    # Get query parameters for sorting and pagination
+    sort_by = request.args.get('sort_by', 'title')  # Default to sorting by title
+    page = int(request.args.get('page', 1))
+    limit = int(request.args.get('limit', 10))
+
+    # Determine the skip value for pagination
+    skip = (page - 1) * limit
+
+    # Query the events collection with sorting and pagination options
+    events = db.events.find().sort(sort_by, 1).skip(skip).limit(limit)
+
     event_list = []
     for event in events:
         event_dict = {
@@ -326,9 +336,10 @@ def get_events():
             'description': event['description'],
             'date': event['date'],
             'time': event['time'],
-            'poster':event['poster']
+            'poster': event['poster']
         }
         event_list.append(event_dict)
+
     return jsonify(event_list)
 
 @app.route('/events', methods=['POST'])
