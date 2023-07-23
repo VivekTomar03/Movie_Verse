@@ -148,7 +148,24 @@ class Movie:
 
 @app.route('/movies', methods=['GET'])
 def get_movies():
-    movies = movies_collection.find()
+    # Get query parameters from the request
+    language = request.args.get('language')
+    sort_by = request.args.get('sort_by')
+    page = int(request.args.get('page', 1))
+    limit = int(request.args.get('limit', 10))
+
+    # Create a query based on the filter parameters
+    query = {}
+    if language:
+        query['language'] = language
+
+    # Fetch movies from the database based on the query
+    movies = movies_collection.find(query).skip((page - 1) * limit).limit(limit)
+
+    # Sort the movies if sort_by parameter is provided
+    if sort_by:
+        movies = movies.sort(sort_by)
+
     movie_list = []
     for movie in movies:
         movie_dict = {
@@ -159,6 +176,7 @@ def get_movies():
             'language': movie['language']
         }
         movie_list.append(movie_dict)
+
     return jsonify(movie_list)
 
 @app.route('/movies', methods=['POST'])
